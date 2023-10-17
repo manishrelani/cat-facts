@@ -46,7 +46,6 @@ class FactsListScreen extends StatelessWidget {
           BlocConsumer<CatFactsBloc, CatFactsState>(
             listenWhen: (previous, current) => current is CatFactsContext,
             listener: (BuildContext context, CatFactsState state) {
-              print(state.runtimeType);
               if (state is ShowWarning) {
                 Methods.showWarningSnackBar(
                     context: context, message: state.message);
