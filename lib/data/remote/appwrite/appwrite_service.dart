@@ -18,17 +18,10 @@ class AppWriteRemoteService extends IRemoteUserDataRepository {
         .setSelfSigned();
     _db = Databases(client);
     final ac = Account(client);
-    try {
-      await ac.createAnonymousSession();
-    } catch (e) {
-      print(e);
-    }
-    try {
-      final value = await ac.getSession(sessionId: 'current');
-      print(value.clientCode);
-    } catch (e) {
-      print(e);
-    }
+
+    await ac.createAnonymousSession();
+
+    await ac.getSession(sessionId: 'current');
   }
 
   @override
