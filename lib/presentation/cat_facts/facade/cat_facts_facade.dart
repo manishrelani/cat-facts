@@ -52,7 +52,7 @@ class CatFactsFacade {
     await _getCatFacts();
     _updateSetOfFacts();
     _startFactTimer();
-    await _updateFactRandomly();
+    _startRandomTimer();
     _isPaused = false;
   }
 
@@ -73,8 +73,8 @@ class CatFactsFacade {
         _page++;
         count = 0;
 
-        _updateSetOfFacts();
         await _getCatFacts();
+        _updateSetOfFacts();
 
         // update page in db
         _localUserDataRepository.updatePage(_page);
@@ -88,10 +88,10 @@ class CatFactsFacade {
       ..start();
   }
 
-  Future<void> _updateFactRandomly() async {
+  void _startRandomTimer() {
     _randomFactTimer = PausableTimer(Duration(seconds: _randomValue), () async {
       await _updateRandomFact();
-      if (!_isPaused) _updateFactRandomly();
+      if (!_isPaused) _startRandomTimer();
     })
       ..start();
   }
@@ -132,8 +132,10 @@ class CatFactsFacade {
   Future<void> _updateRandomFact() async {
     try {
       final fact = await _factsRepository.getRandomCatFact();
-      _lastFactList.add(fact);
-      _factsController.add([..._lastFactList]);
+      if (!_lastFactList.any((element) => element.fact == fact.fact)) {
+        _lastFactList.add(fact);
+        _factsController.add([..._lastFactList]);
+      }
     } catch (e, s) {
       // log
       _factsController.addError(e, s);
@@ -163,7 +165,7 @@ class CatFactsFacade {
     }
 
     if (_randomFactTimer?.isExpired ?? true) {
-      _updateFactRandomly();
+      _startRandomTimer();
     } else {
       _randomFactTimer?.start();
     }

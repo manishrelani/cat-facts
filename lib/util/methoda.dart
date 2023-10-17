@@ -8,6 +8,7 @@ class Methods {
 
   static showWarningSnackBar(
       {required BuildContext context, required String message}) {
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: Colors.orange.shade300,

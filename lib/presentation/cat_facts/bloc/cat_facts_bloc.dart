@@ -65,9 +65,7 @@ class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
     );
 
     on<UserScrollEvent>(
-      (event, emit) async {
-        await _onUserScrollEvent(emit);
-      },
+      _onUserScrollEvent,
       transformer: restartable(),
     );
   }
@@ -86,13 +84,15 @@ class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
     );
   }
 
-  Future<void> _onUserScrollEvent(Emitter<CatFactsState> emit) async {
+  Future<void> _onUserScrollEvent(
+      UserScrollEvent event, Emitter<CatFactsState> emit) async {
+    print(1);
     emit(const ShowWarning("Auto Facts Feed Got Stopped For a while"));
     _pauseFacts();
     await Future.delayed(const Duration(seconds: 1));
     if (emit.isDone) return;
     _startFetchingFacts();
-    emit(const RemoeWarning());
+    emit(const RemoveWarning());
   }
 
   Future<void> _startFetchingFacts() async {

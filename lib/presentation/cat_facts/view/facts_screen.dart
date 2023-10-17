@@ -46,10 +46,11 @@ class FactsListScreen extends StatelessWidget {
           BlocConsumer<CatFactsBloc, CatFactsState>(
             listenWhen: (previous, current) => current is CatFactsContext,
             listener: (BuildContext context, CatFactsState state) {
+              print(state.runtimeType);
               if (state is ShowWarning) {
                 Methods.showWarningSnackBar(
                     context: context, message: state.message);
-              } else if (state is RemoeWarning) {
+              } else if (state is RemoveWarning) {
                 Methods.removeSnackBar(context);
               }
             },
@@ -80,30 +81,32 @@ class CatFactsListView extends StatelessWidget {
         bloc.add(UserScrollEvent());
         return true;
       },
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 100),
-        children: List.generate(
-          factsList.length,
-          (index) => AnimationConfiguration.staggeredList(
-            key: ValueKey(factsList[index]),
-            position: index,
-            duration: const Duration(milliseconds: 400),
-            child: SlideAnimation(
-              horizontalOffset: 400.0,
-              curve: Curves.easeIn,
-              child: FactWidget(
-                factData: factsList[index],
-                onDispose: (appearanceTime, duration) {
-                  bloc.add(
-                    UpdateUserDataOnFactsEvent(
-                      UserDataModel(
-                        fact: factsList[index].fact,
-                        appearanceTime: appearanceTime,
-                        duration: duration,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 70),
+        child: Column(
+          children: List.generate(
+            factsList.length,
+            (index) => AnimationConfiguration.staggeredList(
+              key: ValueKey(factsList[index]),
+              position: index,
+              duration: const Duration(milliseconds: 400),
+              child: SlideAnimation(
+                horizontalOffset: 400.0,
+                curve: Curves.easeIn,
+                child: FactWidget(
+                  factData: factsList[index],
+                  onDispose: (appearanceTime, duration) {
+                    bloc.add(
+                      UpdateUserDataOnFactsEvent(
+                        UserDataModel(
+                          fact: factsList[index].fact,
+                          appearanceTime: appearanceTime,
+                          duration: duration,
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -149,6 +152,7 @@ class _FactWidgetState extends State<FactWidget> {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(4),
+      width: double.maxFinite,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         color: Colors.white,

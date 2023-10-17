@@ -22,6 +22,6 @@ final class ShowWarning extends CatFactsContext {
   const ShowWarning(this.message);
 }
 
-final class RemoeWarning extends CatFactsContext {
-  const RemoeWarning();
+final class RemoveWarning extends CatFactsContext {
+  const RemoveWarning();
 }
