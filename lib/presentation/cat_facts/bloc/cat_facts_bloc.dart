@@ -1,17 +1,17 @@
 import 'dart:async';
 
 import 'package:bloc_concurrency/bloc_concurrency.dart';
-import 'package:cat_facts/domain/repository/remote/remote_db_repository.dart';
-import 'package:cat_facts/util/internet_helper.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-import '../../../../domain/model/facts_responce_model.dart';
 import '../../../../domain/model/user_data_model.dart';
 import '../../../../domain/repository/local/user_data_repository.dart';
 import '../../../../domain/repository/remote/fact_repository.dart';
+import '../../../domain/model/fact_model.dart';
+import '../../../domain/repository/remote/remote_db_repository.dart';
+import '../../../util/internet_helper.dart';
 import '../facade/cat_facts_facade.dart';
 
 part 'cat_facts_event.dart';
@@ -19,29 +19,30 @@ part 'cat_facts_state.dart';
 
 class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
   final IFactsRepository factsRepository;
-  final IUSerDataRepository localUserDataRepository;
-  final IRemoteUserDataRepository remoteUserDataRepository;
+  final IUserLocalDataRepository userLocalDataRepository;
+  final IRemoteUserFactsMetaRepository remoteUserDataRepository;
 
   final CatFactsFacade _factsFacade;
 
-  StreamSubscription<List<FactsModel>>? _factsSubscription;
+  StreamSubscription<List<FactModel>>? _factsSubscription;
   StreamSubscription<InternetConnectionStatus>? _internetSubSription;
+
+  InternetConnectionStatus _status = InternetConnectionStatus.disconnected;
 
   CatFactsBloc({
     required this.factsRepository,
-    required this.localUserDataRepository,
+    required this.userLocalDataRepository,
     required this.remoteUserDataRepository,
   })  : _factsFacade = CatFactsFacade(
           factsRepository: factsRepository,
-          localUserDataRepository: localUserDataRepository,
+          userLocalDataRepository: userLocalDataRepository,
         ),
         super(CatFactsLoading()) {
     on<InitiateEvent>(
       (event, emit) async {
-        await localUserDataRepository.initialize();
-        await _factsFacade.initialize();
+        await _initDb();
         _listenInternetActivity();
-        _updateAllLocalData();
+        _transferLocalDataToRemote();
 
         add(FetchCatFactsEvent());
       },
@@ -49,25 +50,18 @@ class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
 
     on<FetchCatFactsEvent>(
       (event, emit) async {
-        try {
-          await onFetchCatFacts(emit: emit);
-        } catch (_) {
-          // log here
-        }
+        await onFetchCatFacts(emit: emit);
       },
     );
 
-    on<UpdateUserDataOnFactsEvent>(
+    on<UpdateUserMetaDataEvent>(
       (event, emit) async {
-        await localUserDataRepository.addFact(event.userData);
+        await userLocalDataRepository.addFact(event.userData);
       },
       transformer: sequential(),
     );
 
-    on<UserScrollEvent>(
-      _onUserScrollEvent,
-      transformer: restartable(),
-    );
+    on<UserScrollEvent>(_onUserScrollEvent, transformer: restartable());
   }
 
   Future<void> onFetchCatFacts({
@@ -76,17 +70,19 @@ class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
     await emit.onEach(
       _factsFacade.factsStream,
       onData: (data) {
-        emit(CatFactsLoaded(data));
+        emit(CatFactsUpdated(data.$1, hasNewUpdate: data.$2));
       },
       onError: (error, stackTrace) {
-        // do something
+        // log here
       },
     );
   }
 
   Future<void> _onUserScrollEvent(
       UserScrollEvent event, Emitter<CatFactsState> emit) async {
-    print(1);
+    if (_status == InternetConnectionStatus.disconnected) {
+      return;
+    }
     emit(const ShowWarning("Auto Facts Feed Got Stopped For a while"));
     _pauseFacts();
     await Future.delayed(const Duration(seconds: 1));
@@ -97,11 +93,11 @@ class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
 
   Future<void> _startFetchingFacts() async {
     try {
-      await _factsFacade.start();
-      _factsSubscription?.resume();
-    } catch (_) {
-      // log here
-    }
+      if (_status == InternetConnectionStatus.connected) {
+        await _factsFacade.start();
+        _factsSubscription?.resume();
+      }
+    } catch (_) {}
   }
 
   void _pauseFacts() {
@@ -109,12 +105,20 @@ class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
     _factsSubscription?.pause();
   }
 
-  Future<void> _updateAllLocalData() async {
+  Future<void> _initDb() async {
+    try {
+      await userLocalDataRepository.initialize();
+    } catch (_) {
+      // logger
+    }
+  }
+
+  Future<void> _transferLocalDataToRemote() async {
     try {
       await remoteUserDataRepository.initialize();
-      final list = await localUserDataRepository.getAllFact();
+      final list = await userLocalDataRepository.getAllFact();
       await remoteUserDataRepository.updateData(list);
-      await localUserDataRepository.deleteDb();
+      await userLocalDataRepository.deleteValues(list);
     } catch (_) {
       // catch db error
       // print("Error $_");
@@ -122,8 +126,9 @@ class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
   }
 
   void _listenInternetActivity() {
-    InternetHelper.init();
+    InternetHelper.listen();
     _internetSubSription = InternetHelper.stream.listen((event) async {
+      _status = event;
       if (event == InternetConnectionStatus.connected) {
         await _startFetchingFacts();
       } else {
@@ -138,6 +143,9 @@ class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
     _internetSubSription?.cancel();
     _factsSubscription = null;
     _internetSubSription = null;
+    _factsFacade.dispose();
+    InternetHelper.stop();
+
     return super.close();
   }
 }

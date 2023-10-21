@@ -17,6 +17,7 @@ class HiveUserFactModelAdapter extends TypeAdapter<HiveUserFactModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return HiveUserFactModel(
+      id: fields[0] as int,
       fact: fields[1] as String,
       arrivingtime: fields[2] as String,
       duration: fields[3] as int,
@@ -26,7 +27,9 @@ class HiveUserFactModelAdapter extends TypeAdapter<HiveUserFactModel> {
   @override
   void write(BinaryWriter writer, HiveUserFactModel obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.fact)
       ..writeByte(2)

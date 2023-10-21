@@ -1,24 +1,53 @@
-import 'package:equatable/equatable.dart';
-
-class UserDataModel extends Equatable {
+class UserFectMetaModel {
   final String fact;
-  final String appearanceTime;
-  final int duration;
+  final int id;
+  // in Iso8601String Formate
+  String? _appearanceTime;
+  // in seconds
+  int _duration = 0;
+  bool isSeeing = false;
 
-  const UserDataModel({
+  UserFectMetaModel({
     required this.fact,
-    required this.appearanceTime,
-    required this.duration,
-  });
+    required this.id,
+    String? appearanceTime,
+    int duration = 0,
+  })  : _duration = duration,
+        _appearanceTime = appearanceTime;
+
+  set appearanceTime(String? time) {
+    _appearanceTime ??= time;
+  }
+
+  set duration(int duration) {
+    _duration += duration;
+  }
+
+  bool get hasSeen => _duration > 0;
+
+  String? get appearanceTime => _appearanceTime;
+  int get duration => _duration;
 
   Map<String, dynamic> toJson() {
     return {
       'fact': fact,
-      'appearance_time': appearanceTime,
-      'duration': duration
+      'appearance_time': _appearanceTime,
+      'duration': _duration,
     };
   }
 
+  UserFectMetaModel copyWith(
+      {String? fact, int? id, String? appearanceTime, int? duration}) {
+    return UserFectMetaModel(
+      fact: fact ?? this.fact,
+      id: id ?? this.id,
+      appearanceTime: appearanceTime ?? _appearanceTime,
+      duration: duration ?? _duration,
+    );
+  }
+
   @override
-  List<Object?> get props => [fact, appearanceTime, duration];
+  String toString() {
+    return 'UserFectMetaModel(id: $id, fact:$fact, appearanceTime: $_appearanceTime, duration: $_duration)';
+  }
 }

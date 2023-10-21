@@ -11,9 +11,10 @@ sealed class CatFactsContext extends CatFactsState {
 
 final class CatFactsLoading extends CatFactsState {}
 
-final class CatFactsLoaded extends CatFactsState {
-  final List<FactsModel> facts;
-  const CatFactsLoaded(this.facts);
+final class CatFactsUpdated extends CatFactsState {
+  final List<UserFectMetaModel> facts;
+  final bool hasNewUpdate;
+  const CatFactsUpdated(this.facts, {this.hasNewUpdate = false});
 }
 
 final class ShowWarning extends CatFactsContext {

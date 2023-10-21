@@ -1,14 +1,14 @@
-import 'package:cat_facts/core/config/app_textstyle.dart';
-import 'package:cat_facts/core/image_constant.dart';
-import 'package:cat_facts/util/methoda.dart';
-import 'package:cat_facts/widget/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
-import '../../../domain/model/facts_responce_model.dart';
+import '../../../core/constant/app_textstyle.dart';
 import '../../../domain/model/user_data_model.dart';
+import '../../../util/method.dart';
 import '../bloc/cat_facts_bloc.dart';
+import '../widget/fact_widget.dart';
+import '../widget/loading_widget.dart';
+import '../widget/new_update_widget.dart';
+import '../widget/orientation_background.dart';
 
 class FactsListScreen extends StatelessWidget {
   const FactsListScreen({super.key});
@@ -18,31 +18,18 @@ class FactsListScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade400,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Colors.white,
         centerTitle: true,
-        title: Text(
+        title: const Text(
           "Cat Facts",
-          style: AppTextStyles.kText16Medium.copyWith(color: Colors.white),
+          style: AppTextStyles.kText16Medium,
         ),
       ),
       body: Stack(
         children: [
-          Column(
-            children: [
-              Expanded(
-                child: Image.asset(
-                  AppImage.pawBackgroundPng,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Expanded(
-                child: Image.asset(
-                  AppImage.pawBackgroundPng,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ],
-          ),
+          MediaQuery.orientationOf(context) == Orientation.portrait
+              ? const PortraitBackground()
+              : const LandscapeBackground(),
           BlocConsumer<CatFactsBloc, CatFactsState>(
             listenWhen: (previous, current) => current is CatFactsContext,
             listener: (BuildContext context, CatFactsState state) {
@@ -54,12 +41,12 @@ class FactsListScreen extends StatelessWidget {
               }
             },
             buildWhen: (previous, current) =>
-                current is CatFactsLoading || current is CatFactsLoaded,
+                current is CatFactsLoading || current is CatFactsUpdated,
             builder: (BuildContext context, CatFactsState state) {
-              if (state is CatFactsLoaded) {
-                return CatFactsListView(state.facts);
+              if (state is CatFactsUpdated) {
+                return CatFactsListView(state.facts, state.hasNewUpdate);
               }
-              return const _LoadingWidget();
+              return const LoadingWidget();
             },
           ),
         ],
@@ -68,129 +55,89 @@ class FactsListScreen extends StatelessWidget {
   }
 }
 
-class CatFactsListView extends StatelessWidget {
-  final List<FactsModel> factsList;
-  const CatFactsListView(this.factsList, {super.key});
+class CatFactsListView extends StatefulWidget {
+  final List<UserFectMetaModel> factsList;
+  final bool hasNewUpdate;
+  const CatFactsListView(this.factsList, this.hasNewUpdate, {super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final bloc = context.read<CatFactsBloc>();
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        bloc.add(UserScrollEvent());
-        return true;
-      },
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 70),
-        child: Column(
-          children: List.generate(
-            factsList.length,
-            (index) => AnimationConfiguration.staggeredList(
-              key: ValueKey(factsList[index]),
-              position: index,
-              duration: const Duration(milliseconds: 400),
-              child: SlideAnimation(
-                horizontalOffset: 400.0,
-                curve: Curves.easeIn,
-                child: FactWidget(
-                  factData: factsList[index],
-                  onDispose: (appearanceTime, duration) {
-                    bloc.add(
-                      UpdateUserDataOnFactsEvent(
-                        UserDataModel(
-                          fact: factsList[index].fact,
-                          appearanceTime: appearanceTime,
-                          duration: duration,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void onDispose(
-      BuildContext context, String fact, String appearanceTime, int duration) {}
+  State<CatFactsListView> createState() => _CatFactsListViewState();
 }
 
-class FactWidget extends StatefulWidget {
-  final FactsModel factData;
-  final Function(String appearanceTime, int duration) onDispose;
-  const FactWidget(
-      {required this.factData, required this.onDispose, super.key});
+class _CatFactsListViewState extends State<CatFactsListView> {
+  final controller = ScrollController();
 
-  @override
-  State<FactWidget> createState() => _FactWidgetState();
-}
-
-class _FactWidgetState extends State<FactWidget> {
-  late String appearanceTime;
-  final stopWatch = Stopwatch();
+  late bool hasNewUpdate = widget.hasNewUpdate;
 
   @override
   void initState() {
-    appearanceTime = DateTime.now().toIso8601String();
-    stopWatch.start();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      controller.addListener(_updateScroll);
+    });
     super.initState();
   }
 
   @override
-  void deactivate() {
-    stopWatch.stop();
-    widget.onDispose(appearanceTime, stopWatch.elapsedMilliseconds);
-    super.deactivate();
+  void dispose() {
+    controller.removeListener(_updateScroll);
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant CatFactsListView oldWidget) {
+    if (widget.hasNewUpdate) {
+      setState(() {
+        hasNewUpdate = true;
+      });
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  void _updateScroll() {
+    if (controller.position.pixels == controller.position.minScrollExtent &&
+        hasNewUpdate) {
+      setState(() {
+        hasNewUpdate = false;
+      });
+    }
+    context.read<CatFactsBloc>().add(UserScrollEvent());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.all(4),
-      width: double.maxFinite,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.white,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text(
-          widget.factData.fact,
-          style: AppTextStyles.kText16Regular,
-        ),
-      ),
-    );
-  }
-}
+    final bloc = context.read<CatFactsBloc>();
+    return Stack(
+      children: [
+        LayoutBuilder(builder: (context, constraints) {
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            controller: controller,
+            addAutomaticKeepAlives: true,
+            itemExtent: constraints.maxHeight * 0.33,
+            itemCount: widget.factsList.length,
+            itemBuilder: (context, index) {
+              final fact = widget.factsList[index];
 
-class _LoadingWidget extends StatelessWidget {
-  const _LoadingWidget();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomShimmer(
-      highlightColor: Colors.grey.shade50,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(14.0),
-        child: Column(
-          children: List.generate(
-            5,
-            (index) => Container(
-              height: 100,
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ),
+              return FactWidget(
+                key: ValueKey(fact.id),
+                factData: fact,
+                index: index,
+                onUpdate: () {
+                  bloc.add(
+                    UpdateUserMetaDataEvent(fact.copyWith()),
+                  );
+                },
+              );
+            },
+          );
+        }),
+        if (hasNewUpdate)
+          NewUpdateWidget(
+            onTap: () => controller.animateTo(0,
+                curve: Curves.linear,
+                duration: const Duration(milliseconds: 400)),
+          )
+      ],
     );
   }
 }

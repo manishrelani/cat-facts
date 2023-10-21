@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-import '../core/constant/app_color.dart';
-import '../core/constant/app_textstyle.dart';
-import 'global_keys.dart';
+import '../../util/global_keys.dart';
+import '../constant/app_color.dart';
+import '../constant/app_textstyle.dart';
 
 class InternetHelper {
   const InternetHelper._();
@@ -39,7 +39,7 @@ class InternetHelper {
           }
         } else {
           if (globalScaffoldKey.currentState != null) {
-            globalScaffoldKey.currentState!.hideCurrentSnackBar();
+            globalScaffoldKey.currentState!.clearSnackBars();
           }
         }
       },

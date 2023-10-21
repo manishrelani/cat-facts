@@ -1,1 +1,0 @@
-class NetWorkExeption implements Exception {}

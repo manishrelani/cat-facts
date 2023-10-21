@@ -14,10 +14,10 @@ class FetchCatFactsEvent extends CatFactsEvent {}
 
 class UserScrollEvent extends CatFactsEvent {}
 
-class UpdateUserDataOnFactsEvent extends CatFactsEvent {
-  final UserDataModel userData;
+class UpdateUserMetaDataEvent extends CatFactsEvent {
+  final UserFectMetaModel userData;
 
-  const UpdateUserDataOnFactsEvent(this.userData);
+  const UpdateUserMetaDataEvent(this.userData);
 
   @override
   List<Object?> get props => [userData];

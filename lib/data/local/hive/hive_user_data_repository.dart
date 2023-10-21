@@ -6,23 +6,25 @@ import '../../../domain/repository/local/user_data_repository.dart';
 import '../../../util/hive_helper.dart';
 import 'hive_service.dart';
 
-class HiveUserDataRepository extends IUSerDataRepository {
+class HiveUserMetaRepository extends IUserLocalDataRepository {
   final HiveService<HiveUserFactModel> _userFactDataService;
   final HiveService _userDataService;
-  HiveUserDataRepository(
+  HiveUserMetaRepository(
       {required HiveService<HiveUserFactModel> userFactDataService,
       required HiveService userDataService})
       : _userDataService = userDataService,
         _userFactDataService = userFactDataService;
 
   @override
-  Future<void> addFact(UserDataModel value) async {
+  Future<void> addFact(UserFectMetaModel value) async {
     final hiveObject = HiveUserFactModel(
-        fact: value.fact,
-        arrivingtime: value.appearanceTime,
-        duration: value.duration);
+      fact: value.fact,
+      arrivingtime: value.appearanceTime ?? "",
+      duration: value.duration,
+      id: value.id,
+    );
 
-    await _userFactDataService.getDbInstance.add(hiveObject);
+    await _userFactDataService.getDbInstance.put(value.id, hiveObject);
   }
 
   @override
@@ -45,15 +47,25 @@ class HiveUserDataRepository extends IUSerDataRepository {
   }
 
   @override
-  List<UserDataModel> getAllFact() {
+  List<UserFectMetaModel> getAllFact() {
     return _userFactDataService.getDbInstance.values
-        .map((e) => UserDataModel(
-            fact: e.fact, appearanceTime: e.arrivingtime, duration: e.duration))
+        .map((e) => UserFectMetaModel(
+              id: e.key,
+              fact: e.fact,
+              appearanceTime: e.arrivingtime,
+              duration: e.duration,
+            ))
         .toList();
   }
 
   @override
-  FutureOr<void> deleteDb() {
-    _userFactDataService.getDbInstance.clear();
+  FutureOr<void> deleteDb() async {
+    await _userFactDataService.getDbInstance.clear();
+    await _userDataService.getDbInstance.clear();
+  }
+
+  @override
+  FutureOr<void> deleteValues(List<UserFectMetaModel> list) async {
+    await _userFactDataService.getDbInstance.deleteAll(list.map((e) => e.id));
   }
 }

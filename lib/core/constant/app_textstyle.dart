@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../app_color.dart';
+import 'app_color.dart';
 
 class AppTextStyles {
   static const TextStyle kText10Regular = TextStyle(
@@ -20,6 +20,11 @@ class AppTextStyles {
   );
   static const TextStyle kText14Regular = TextStyle(
     fontSize: 14,
+    fontFamily: 'sfpt-regular',
+    color: AppColors.primaryTextColor,
+  );
+  static const TextStyle kText15Regular = TextStyle(
+    fontSize: 15,
     fontFamily: 'sfpt-regular',
     color: AppColors.primaryTextColor,
   );

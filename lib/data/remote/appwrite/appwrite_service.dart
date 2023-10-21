@@ -5,7 +5,7 @@ import 'package:appwrite/appwrite.dart';
 import '../../../domain/model/user_data_model.dart';
 import '../../../domain/repository/remote/remote_db_repository.dart';
 
-class AppWriteRemoteService extends IRemoteUserDataRepository {
+class AppWriteRemoteService extends IRemoteUserFactsMetaRepository {
   Databases? _db;
 
   @override
@@ -19,18 +19,20 @@ class AppWriteRemoteService extends IRemoteUserDataRepository {
     _db = Databases(client);
     final ac = Account(client);
 
-    await ac.createAnonymousSession();
-
-    await ac.getSession(sessionId: 'current');
+    try {
+      await ac.get();
+    } on AppwriteException {
+      await ac.createAnonymousSession();
+    }
   }
 
   @override
-  Future<void> updateData(List<UserDataModel> value) async {
+  Future<void> updateData(List<UserFectMetaModel> value) async {
     for (var i in value) {
       await _db?.createDocument(
         databaseId: AppwriteDatabaseHelper.dbId,
         collectionId: AppwriteDatabaseHelper.collectionId,
-        documentId: ID.unique(),
+        documentId: "${i.id}",
         data: i.toJson(),
       );
     }

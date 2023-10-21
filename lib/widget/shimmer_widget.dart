@@ -1,6 +1,7 @@
-import 'package:cat_facts/core/app_color.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+
+import '../core/constant/app_color.dart';
 
 class CustomShimmer extends StatelessWidget {
   final Widget child;

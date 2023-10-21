@@ -14,3 +14,11 @@ class AppColors {
 
   static const Color white = Colors.white;
 }
+
+List<Color> colorList = const [
+  Color(0xFFF6FFDE),
+  Color(0xFFFAF3F0),
+  Color(0xFFFAF0D7),
+  Color(0xFFF6FFDE),
+  Color(0xFFFAF8ED),
+];
