@@ -122,6 +122,7 @@ class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
       await remoteUserDataRepository.updateData(list);
       await userLocalDataRepository.deleteValues(list);
     } catch (_) {
+      print(_);
       // catch db error
       // print("Error $_");
     }

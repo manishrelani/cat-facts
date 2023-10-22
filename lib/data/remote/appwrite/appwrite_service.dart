@@ -8,7 +8,7 @@ import '../../../domain/repository/remote/remote_db_repository.dart';
 
 class AppWriteRemoteService extends IRemoteUserFactsMetaRepository {
   Databases? _db;
-  Session? _session;
+  User? _user;
 
   @override
   Future<void> initialize() async {
@@ -18,35 +18,37 @@ class AppWriteRemoteService extends IRemoteUserFactsMetaRepository {
         .setEndpoint(AppwriteDatabaseHelper.endPoint)
         .setProject(AppwriteDatabaseHelper.projectId)
         .setSelfSigned();
-    _db = Databases(client);
 
     final ac = Account(client);
+    _db = Databases(client);
 
     try {
-      _session = await ac.getSession(sessionId: 'current');
+      await ac.getSession(sessionId: 'current');
     } on AppwriteException {
-      _session = await ac.createAnonymousSession();
+      final session = await ac.createAnonymousSession();
+      ac.updatePrefs(prefs: {
+        "deviceBrand": session.deviceBrand,
+        "deviceModel": session.deviceModel,
+        "deviceName": session.deviceName,
+        "ip": session.ip,
+        "countryName": session.countryName,
+        "userId": session.userId,
+        "clientName": session.clientName,
+      });
     }
-
-    ac.updatePrefs(prefs: {
-      "deviceBrand": _session?.deviceBrand,
-      "deviceModel": _session?.deviceModel,
-      "deviceName": _session?.deviceName,
-      "ip": _session?.ip,
-      "countryName": _session?.countryName,
-      "userId": _session?.userId,
-      "clientName": _session?.clientName,
-    });
+    _user = await ac.get();
   }
 
   @override
   Future<void> updateData(List<UserFectMetaModel> value) async {
     for (var i in value) {
+      final data = {...i.toJson(), 'user_id': _user!.$id};
+
       await _db?.createDocument(
         databaseId: AppwriteDatabaseHelper.dbId,
         collectionId: AppwriteDatabaseHelper.collectionId,
         documentId: "${i.id}",
-        data: i.toJson(),
+        data: data,
       );
     }
   }
