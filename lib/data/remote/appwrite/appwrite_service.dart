@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/models.dart';
 
 import '../../../domain/model/user_data_model.dart';
 import '../../../domain/repository/remote/remote_db_repository.dart';
 
 class AppWriteRemoteService extends IRemoteUserFactsMetaRepository {
   Databases? _db;
+  Session? _session;
 
   @override
   Future<void> initialize() async {
@@ -17,13 +19,24 @@ class AppWriteRemoteService extends IRemoteUserFactsMetaRepository {
         .setProject(AppwriteDatabaseHelper.projectId)
         .setSelfSigned();
     _db = Databases(client);
+
     final ac = Account(client);
 
     try {
-      await ac.get();
+      _session = await ac.getSession(sessionId: 'current');
     } on AppwriteException {
-      await ac.createAnonymousSession();
+      _session = await ac.createAnonymousSession();
     }
+
+    ac.updatePrefs(prefs: {
+      "deviceBrand": _session?.deviceBrand,
+      "deviceModel": _session?.deviceModel,
+      "deviceName": _session?.deviceName,
+      "ip": _session?.ip,
+      "countryName": _session?.countryName,
+      "userId": _session?.userId,
+      "clientName": _session?.clientName,
+    });
   }
 
   @override

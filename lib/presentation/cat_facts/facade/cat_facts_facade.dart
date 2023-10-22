@@ -42,7 +42,7 @@ class CatFactsFacade {
 
   Future<void> _initialize() async {
     _page = await _userLocalDataRepository.getPage();
-    _fetchInitialFactsDataSet();
+    await _fetchInitialFactsDataSet();
     _startPeriodicFactsTimer();
     _startRandomTimer();
   }
@@ -51,7 +51,10 @@ class CatFactsFacade {
     try {
       _factsList =
           await _factsRepository.getCatFacts(page: _page, perPage: _perPage);
-
+      if (_factsList.length < 30) {
+        _resetPage();
+        return _fetchInitialFactsDataSet();
+      }
       //suffle it so can take first n data randomly
       _factsList.shuffle(_random);
 
@@ -67,7 +70,7 @@ class CatFactsFacade {
       // remove it so it will not repeat again
 
       // to get new facts after initial facts
-      _page++;
+      _addPage();
     } catch (e, s) {
       _factsController.addError(e, s);
     }
@@ -103,6 +106,12 @@ class CatFactsFacade {
 
   void _resetPage() {
     _page = 1;
+    _userLocalDataRepository.updatePage(_page);
+  }
+
+  void _addPage() {
+    _page++;
+    _userLocalDataRepository.updatePage(_page);
   }
 
   void _updateFacts() {
@@ -112,7 +121,7 @@ class CatFactsFacade {
     // update the displayed facts
     final List<UserFectMetaModel> updateList = [];
     bool hasUpdate = false;
-    for (int i = 0; i < _onUserScreen; i++) {
+    for (int i = 0; (i < _onUserScreen && _userDataList.length > i); i++) {
       if (_userDataList[i].hasSeen && !_userDataList[i].isSeeing) {
         // to show update
         if (i < 3) hasUpdate = true;
@@ -138,9 +147,8 @@ class CatFactsFacade {
         if (facts.length < _perPage) {
           _resetPage();
         } else {
-          _page++;
+          _addPage();
         }
-        _userLocalDataRepository.updatePage(_page);
       }
     } catch (e, s) {
       _factsController.addError(e, s);

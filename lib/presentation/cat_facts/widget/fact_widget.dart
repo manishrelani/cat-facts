@@ -32,10 +32,11 @@ class _FactWidgetState extends State<FactWidget>
     animationController = AnimationController(
       vsync: this,
       animationBehavior: AnimationBehavior.preserve,
-      duration: Duration(milliseconds: 100 * widget.index),
+      duration: Duration(milliseconds: 300 + (widget.index * 50)),
     );
     animation = Tween<double>(begin: 0.0, end: 1).animate(
         CurvedAnimation(parent: animationController!, curve: Curves.easeIn));
+    animationController!.forward();
     super.initState();
   }
 
@@ -48,17 +49,9 @@ class _FactWidgetState extends State<FactWidget>
   }
 
   void startTime() async {
-    animateController();
     time ??= DateTime.now();
     widget.factData.appearanceTime ??= time!.toIso8601String();
-
     widget.factData.isSeeing = true;
-  }
-
-  void animateController() {
-    if (!(animationController?.isAnimating ?? true)) {
-      animationController!.forward();
-    }
   }
 
   void stopTime() {
@@ -74,26 +67,26 @@ class _FactWidgetState extends State<FactWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return VisibilityDetector(
-      key: ValueKey(widget.factData.id),
-      onVisibilityChanged: (VisibilityInfo info) {
-        if (info.visibleFraction > 0) {
-          startTime();
-        } else if (info.visibleFraction == 0.0) {
-          stopTime();
-        }
-      },
-      child: FadeTransition(
-        opacity: animation!,
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 5),
-          padding: const EdgeInsets.all(12),
-          alignment: Alignment.center,
-          width: double.maxFinite,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: colorList[widget.index % 5],
-          ),
+    return FadeTransition(
+      opacity: animation!,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.all(12),
+        alignment: Alignment.center,
+        width: double.maxFinite,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: colorList[widget.index % 5],
+        ),
+        child: VisibilityDetector(
+          key: ValueKey(widget.factData.id),
+          onVisibilityChanged: (VisibilityInfo info) {
+            if (info.visibleFraction > 0) {
+              startTime();
+            } else if (info.visibleFraction == 0.0) {
+              stopTime();
+            }
+          },
           child: Text(
             widget.factData.fact,
             textAlign: TextAlign.center,

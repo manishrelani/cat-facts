@@ -56,7 +56,9 @@ class CatFactsBloc extends Bloc<CatFactsEvent, CatFactsState> {
 
     on<UpdateUserMetaDataEvent>(
       (event, emit) async {
-        await userLocalDataRepository.addFact(event.userData);
+        if (event.userData.duration > 0) {
+          await userLocalDataRepository.addFact(event.userData);
+        }
       },
       transformer: sequential(),
     );
