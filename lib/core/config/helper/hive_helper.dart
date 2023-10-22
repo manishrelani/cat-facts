@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../domain/model/database/hive_fact_model.dart';
+import '../../../domain/model/database/hive_fact_model.dart';
 
 class HiveHelper {
   const HiveHelper._();

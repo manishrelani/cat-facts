@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import '../../../core/config/helper/hive_helper.dart';
 import '../../../domain/model/database/hive_fact_model.dart';
 import '../../../domain/model/user_data_model.dart';
 import '../../../domain/repository/local/user_data_repository.dart';
-import '../../../util/hive_helper.dart';
 import 'hive_service.dart';
 
 class HiveUserMetaRepository extends IUserLocalDataRepository {

@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/config/helper/hive_helper.dart';
+import 'core/config/helper/locator.dart';
 import 'data/local/hive/hive_service.dart';
 import 'data/local/hive/hive_user_data_repository.dart';
 import 'data/remote/appwrite/appwrite_service.dart';
@@ -10,8 +12,6 @@ import 'domain/model/database/hive_fact_model.dart';
 import 'presentation/cat_facts/bloc/cat_facts_bloc.dart';
 import 'presentation/cat_facts/view/facts_screen.dart';
 import 'util/global_keys.dart';
-import 'util/hive_helper.dart';
-import 'util/locator.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

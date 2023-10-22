@@ -9,9 +9,9 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../../../../domain/model/user_data_model.dart';
 import '../../../../domain/repository/local/user_data_repository.dart';
 import '../../../../domain/repository/remote/fact_repository.dart';
+import '../../../core/config/helper/internet_helper.dart';
 import '../../../domain/model/fact_model.dart';
 import '../../../domain/repository/remote/remote_db_repository.dart';
-import '../../../util/internet_helper.dart';
 import '../facade/cat_facts_facade.dart';
 
 part 'cat_facts_event.dart';

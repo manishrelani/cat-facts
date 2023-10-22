@@ -149,8 +149,10 @@ class CatFactsFacade {
 
   Future<void> _updateRandomFact() async {
     try {
-      final fact = await _factsRepository.getRandomCatFact();
-      _factsList.add(fact);
+      if (_factsList.length < 20) {
+        final fact = await _factsRepository.getRandomCatFact();
+        _factsList.add(fact);
+      }
     } catch (e, s) {
       // log
       _factsController.addError(e, s);
