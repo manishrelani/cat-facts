@@ -23,7 +23,6 @@ class FactWidget extends StatefulWidget {
 class _FactWidgetState extends State<FactWidget>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   DateTime? time;
-  bool _isTimerStartTed = false;
 
   AnimationController? animationController;
   Animation<double>? animation;
@@ -32,7 +31,8 @@ class _FactWidgetState extends State<FactWidget>
   void initState() {
     animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      animationBehavior: AnimationBehavior.preserve,
+      duration: Duration(milliseconds: 100 * widget.index),
     );
     animation = Tween<double>(begin: 0.0, end: 1).animate(
         CurvedAnimation(parent: animationController!, curve: Curves.easeIn));
@@ -48,15 +48,11 @@ class _FactWidgetState extends State<FactWidget>
   }
 
   void startTime() async {
-    _isTimerStartTed = true;
-    await Future.delayed(const Duration(milliseconds: 200));
-    if (_isTimerStartTed) {
-      animateController();
-      time ??= DateTime.now();
-      widget.factData.appearanceTime ??= time!.toIso8601String();
+    animateController();
+    time ??= DateTime.now();
+    widget.factData.appearanceTime ??= time!.toIso8601String();
 
-      widget.factData.isSeeing = true;
-    }
+    widget.factData.isSeeing = true;
   }
 
   void animateController() {
@@ -66,13 +62,11 @@ class _FactWidgetState extends State<FactWidget>
   }
 
   void stopTime() {
-    _isTimerStartTed = false;
     if (time != null) {
       final currentTime = DateTime.now();
       widget.factData.duration = currentTime.difference(time!).inSeconds;
       time = null;
       widget.factData.isSeeing = false;
-
       widget.onUpdate();
     }
   }
