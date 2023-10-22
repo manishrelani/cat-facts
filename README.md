@@ -1,16 +1,45 @@
-# cat_facts
+# Cat Facts App
 
-A new Flutter project.
+## Project Overview
 
-## Getting Started
+The Cat Facts App is a Flutter-based mobile application that displays random cat facts in a dynamic feed. The app regularly updates the displayed facts and records user impressions on the displayed tiles.
 
-This project is a starting point for a Flutter application.
+## Table of Contents
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Project Installation](#project-installation)
+- [APK Link](#apk-link)
 
-A few resources to get you started if this is your first Flutter project:
+### Getting Started
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+#### Prerequisites
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+To run this project, you will need to have Flutter and Dart installed on your development environment. If you don't have them installed, you can follow the official Flutter installation guide: [Flutter Installation Guide](https://flutter.dev/docs/get-started/install).
+
+#### Project Installation
+
+1. Clone this repository to your local machine :
+   
+    ```bash
+   git clone https://github.com/manishrelani/cat-facts.git
+   ```
+3. Open that cat-facts folder in ur IDE And run the below command :
+   
+     ```bash
+   flutter pub get
+   dart run build_runner build --delete-conflicting-outputs
+   ```
+5. To run this application :
+   
+    ```bash
+   flutter run
+   ```
+7. To generate a release APK:
+   
+     ```bash
+   flutter build apk --release         
+   ``` 
+
+### APK Link
+
+[Apk Link](https://drive.google.com/file/d/1XFRQOatFsKvbfFeSHcAm5Y59fM-rgHm4/view?usp=share_link).
