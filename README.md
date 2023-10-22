@@ -42,4 +42,4 @@ To run this project, you will need to have Flutter and Dart installed on your de
 
 ### APK Link
 
-[Apk Link](https://drive.google.com/file/d/1XFRQOatFsKvbfFeSHcAm5Y59fM-rgHm4/view?usp=share_link).
+[Apk Link](https://drive.google.com/file/d/1NAyLFykoOdVpNr5HZCEXSlqoMxV9bfp5/view?usp=share_link).
